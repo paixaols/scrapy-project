@@ -27,7 +27,7 @@ def retry_get_attribute(element, attribute, attempts=5, sleep=1):
     return result
 
 
-class QuotesSpider(scrapy.Spider):
+class MagaluSpider(scrapy.Spider):
     name = 'magalu'
 
     def start_requests(self):
