@@ -69,9 +69,9 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "pricemonitor.pipelines.PricemonitorPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "pricemonitor.pipelines.PricemonitorPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -98,3 +98,7 @@ DOWNLOADER_MIDDLEWARES = {
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+# Database settings
+sqlite_filename = 'db.sqlite3'
+DATABASE_CONNECTION = f'sqlite:///{sqlite_filename}'
