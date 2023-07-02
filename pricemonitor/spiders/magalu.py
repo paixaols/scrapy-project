@@ -33,15 +33,16 @@ class MagaluSpider(scrapy.Spider):
     def start_requests(self):
         urls = [
             'https://www.magazineluiza.com.br/celulares-e-smartphones/l/te/',
-            'https://www.magazineluiza.com.br/tv-e-video/l/et/'
+            'https://www.magazineluiza.com.br/moveis/l/mo/',
+            'https://www.magazineluiza.com.br/eletrodomesticos/l/ed/',
+            'https://www.magazineluiza.com.br/tv-e-video/l/et/',
+            'https://www.magazineluiza.com.br/informatica/l/in/'
         ]
         for url in urls:
             yield SeleniumRequest(
                 url=url,
                 callback=self.parse_main
             )
-        # url = 'https://www.magazineluiza.com.br/smart-tv-32-hd-led-semp-r6500-wi-fi-3-hdmi-1-usb/p/235912900/et/elit/'
-        # yield scrapy.Request(url, self.parse_product)
 
     def parse_main(self, response):
         driver = response.meta['driver']

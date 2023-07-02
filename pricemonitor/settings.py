@@ -102,3 +102,7 @@ FEED_EXPORT_ENCODING = "utf-8"
 # Database settings
 sqlite_filename = 'db.sqlite3'
 DATABASE_CONNECTION = f'sqlite:///{sqlite_filename}'
+
+# Logging settings
+LOG_FILE = BOT_NAME+'.log'
+LOG_FILE_APPEND = False
