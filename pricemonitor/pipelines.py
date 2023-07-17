@@ -25,9 +25,12 @@ class PricemonitorPipeline:
         spider.conn.execute('drop table if exists stage')
         spider.conn.execute('''
             create table stage (
+                store text,
+                department text,
                 description text,
                 brand text,
-                price text,
+                old_price text,
+                current_price text,
                 code text,
                 url text,
                 timestamp text
@@ -39,11 +42,14 @@ class PricemonitorPipeline:
 
     def process_item(self, item, spider):
         spider.conn.execute(
-            'insert into stage values (?,?,?,?,?,?)',
+            'insert into stage values (?,?,?,?,?,?,?,?,?)',
             (
+                item['store'],
+                item['department'],
                 item['description'],
                 item['brand'],
-                item['price'],
+                item['old_price'],
+                item['current_price'],
                 item['code'],
                 item['url'],
                 item['timestamp']
