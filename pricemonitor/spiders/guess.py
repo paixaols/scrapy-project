@@ -8,10 +8,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 
+def get_full_exception_name(obj):
+    module = obj.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        return obj.__class__.__name__
+    return module + '.' + obj.__class__.__name__
+
+
 class GuessSpider(scrapy.Spider):
     name = 'guess'
 
-    max_pagination_depth = 1
+    max_pagination_depth = 10
     store = 'Guess'
 
     def start_requests(self):
@@ -19,7 +26,7 @@ class GuessSpider(scrapy.Spider):
             ('Feminino-Blusa', 'https://www.guessbrasil.com.br/feminino/roupas/blusas'),
             ('Feminino-Calça', 'https://www.guessbrasil.com.br/feminino/roupas/calcas'),
             ('Feminino-Calça jeans', 'https://www.guessbrasil.com.br/feminino/roupas/calcas-jeans'),
-            ('Feminino-Casaco', 'https://www.guessbrasil.com.br/feminino/roupas/casacos-e-jaquetas')
+            ('Feminino-Casaco/jaqueta', 'https://www.guessbrasil.com.br/feminino/roupas/casacos-e-jaquetas'),
             ('Feminino-Moleton', 'https://www.guessbrasil.com.br/feminino/roupas/moletons'),
             ('Feminino-Vestido', 'https://www.guessbrasil.com.br/feminino/roupas/vestidos')
         ]
@@ -31,7 +38,6 @@ class GuessSpider(scrapy.Spider):
                     'department': department
                 }
             )
-            request.meta['pages'] = 0
             yield request
 
     def parse_main(self, response, department):
@@ -40,10 +46,16 @@ class GuessSpider(scrapy.Spider):
 
         # Número de páginas na paginação
         time.sleep(1)
-        elements = WebDriverWait(driver, timeout=10).until(
-            EC.presence_of_element_located((By.XPATH, '//div[@class="page-number"]'))
-        ).find_elements(By.TAG_NAME, 'span')
-        number_of_pages = int(elements[-2].text)
+        number_of_pages = 0
+        try:
+            elements = WebDriverWait(driver, timeout=10).until(
+                EC.presence_of_element_located((By.XPATH, '//div[@class="page-number"]'))
+            ).find_elements(By.TAG_NAME, 'span')
+            number_of_pages = int(elements[-2].text)
+        except Exception as e:
+            self.logger.debug(f'{response.url} (Exception: {get_full_exception_name(e)})')
+        if number_of_pages > self.max_pagination_depth:
+            number_of_pages = self.max_pagination_depth
 
         for page in range(1, number_of_pages+1):
             url = response.url+f'#/pagina-{page}'
@@ -59,7 +71,7 @@ class GuessSpider(scrapy.Spider):
                 products = vitrine.find_elements(By.TAG_NAME, 'li')
                 self.logger.debug(f'{url} ({len(products)} produtos)')
             except Exception as e:
-                self.logger.debug(f'{url} ({e.__class__})')
+                self.logger.debug(f'{url} (Exception: {get_full_exception_name(e)})')
                 continue
 
             # Raspagem dos produtos
@@ -67,7 +79,7 @@ class GuessSpider(scrapy.Spider):
                 info_el = p.find_element(By.XPATH, 'div[2]/div[4]')
 
                 e = info_el.find_element(By.XPATH, 'span/a')
-                link = e.get_attribute('href')
+                product_url = e.get_attribute('href')
                 description = e.text
 
                 price_el = info_el.find_element(By.XPATH, 'div[2]/div')
@@ -87,6 +99,6 @@ class GuessSpider(scrapy.Spider):
                     'old_price': old_price,
                     'current_price': current_price,
                     'code': None,
-                    'url': link,
+                    'url': product_url,
                     'timestamp': datetime.now()
                 }
